@@ -32,5 +32,15 @@ export default createSlice({
     delete: (state, action) => {
       state.tasks.splice(action.payload, 1);
     },
+    update: (state, action) => {
+      state.tasks = state.tasks.map((item) => {
+        if (item.taskID === action.payload.TASK_ID) {
+          item.taskName = action.payload.NAME;
+          item.note = action.payload.NOTE;
+          if(action.payload.DUEDATE) item.dueDate = action.payload.DUEDATE; 
+        }
+        return item;
+      });
+    }
   },
 });

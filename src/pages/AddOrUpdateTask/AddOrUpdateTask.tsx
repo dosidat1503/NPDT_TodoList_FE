@@ -5,12 +5,12 @@ import { useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parse } from "date-fns";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Riple } from "react-loading-indicators";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import { saveTask, getTask } from "./addOrUpdateTaskAPI";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";  
 
 export interface TaskInfoAddOrUpdate {
   taskID: number;
@@ -20,10 +20,9 @@ export interface TaskInfoAddOrUpdate {
   isChangeDate: boolean;
 }
 
-export default function AddOrUpdateTask() {
-  const queryClient = useQueryClient();
-  const navigation = useNavigate();
-  const { taskID } = useParams();
+export default function AddOrUpdateTask() { 
+  const navigation = useNavigate(); 
+  const { taskID } = useParams(); 
   const {
     register,
     handleSubmit,
@@ -45,9 +44,8 @@ export default function AddOrUpdateTask() {
     onSuccess: (_) => {
       setTimeout(() => {
         navigation("/");
-      }, 1000);
-
-      queryClient.invalidateQueries({ queryKey: ["getTasks"], exact: true });
+      }, 1000);  
+      console.log(data) 
     },
     onError: () => {
       setTimeout(() => {
@@ -99,8 +97,8 @@ export default function AddOrUpdateTask() {
     }
   }, [data]);
 
-  const onSubmit = (data: TaskInfoAddOrUpdate) => {
-    mutationSave.mutate(data);
+  const onSubmit = (data: TaskInfoAddOrUpdate) => {  
+    mutationSave.mutate(data); 
   };
 
   return (

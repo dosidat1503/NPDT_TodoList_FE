@@ -2,7 +2,7 @@ import { faEdit, faEye } from "@fortawesome/free-solid-svg-icons";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons/faTrashCan";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux"; 
 import TasksSlice from "../../pages/Home/TasksSlice";
@@ -26,21 +26,14 @@ interface TaskCardProps {
 export default function TaskCard({ task, indexItem }: TaskCardProps) {
   const dispatch = useDispatch();
   const navigation = useNavigate();
-  const tasks = useSelector((state: RootState) => state.tasks);
-  const queryClient = useQueryClient();
+  const tasks = useSelector((state: RootState) => state.tasks); 
 
   const mutationUpdateStateTask = useMutation({
-    mutationFn: updateState,
-    onError: (_) => {
-      queryClient.invalidateQueries({ queryKey: ["getTasks"], exact: true }); 
-    },
+    mutationFn: updateState, 
   });
 
   const { mutate: mutateDelete, error: errorDelete } = useMutation({
-    mutationFn: deleteTask,
-    onError: (_) => { 
-      queryClient.invalidateQueries({ queryKey: ["getTasks"], exact: true });
-    },
+    mutationFn: deleteTask, 
   });
 
   const handleUpdateState = useCallback(() => {

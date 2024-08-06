@@ -6,11 +6,10 @@ import request from "../../utils/request";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import paths from "../../routes/path";  
+import paths from "../../routes/path";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import TasksSlice from "../Home/TasksSlice";
-
 
 export interface TaskServer {
   TASK_ID: number;
@@ -29,11 +28,11 @@ export default function Home() {
   const [haveTaskInState, setHaveTaskInState] = useState<HaveTaskInState>({
     complete: true,
     uncomplete: true,
-  }); 
+  });
   const tasks = useSelector((state: RootState) => state.tasks);
   const dispatch = useDispatch();
 
-  const handleFetchTasks = async () => { 
+  const handleFetchTasks = async () => {
     const { data } = await request.get("/api/getTasks");
     return data;
   };
@@ -43,13 +42,21 @@ export default function Home() {
     queryFn: handleFetchTasks,
   });
 
-  useEffect(() => {
-    if (data && data.length !== tasks.tasks.length) {
-
+  useEffect(() => {  
+    let checkUpdate = false;
+    const tasksList = tasks.tasks;
+    if(data && tasksList.length > 0) {
+      checkUpdate = data.some((item: TaskServer, index: number) =>  
+        item.NAME !== tasksList[index].taskName 
+        || item.NOTE !== tasksList[index].note 
+        || item.DUEDATE !== tasksList[index].dueDate);
+      console.log(checkUpdate)
+    }
+    if ((data && data.length !== tasks.tasks.length) || checkUpdate) {
       const tasksData = data.map((item: TaskServer) => {
         return {
           taskID: item.TASK_ID,
-          taskName: item.NAME,
+          taskName: item.NAME,  
           note: item.NOTE,
           dueDate: item.DUEDATE,
           isComplete: item.ISCOMPLETE === 0 ? false : true,
@@ -58,7 +65,9 @@ export default function Home() {
       });
 
       dispatch(TasksSlice.actions.setTasks(tasksData));
+      console.log('ok')
     } 
+    console.log('ok ngoài')
   }, [data]);
 
   useEffect(() => {
@@ -129,4 +138,4 @@ export default function Home() {
       )}
     </div>
   );
-} 
+}
