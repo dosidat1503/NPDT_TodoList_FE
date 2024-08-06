@@ -1,5 +1,6 @@
- 
 const paths = {
-    home: "/", 
-}
+  home: "/",
+  add: "/add",
+  update: "/update/:taskID",
+};
 export default paths;

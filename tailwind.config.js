@@ -8,11 +8,7 @@ export default {
     extend: {
       fontFamily: {
         roboto: ['"Roboto Condensed"']
-      },
-      container: {
-        center: true,
-        padding: '3rem',
-      },
+      }, 
       screens: {
         'sm': '576px',
         'md': '768px',
@@ -29,7 +25,7 @@ export default {
         "100%": "100%"
       },
       height: {
-        '97': '39rem',
+        '97': '44.3rem',
       }
     },
   },
