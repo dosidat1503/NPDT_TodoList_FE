@@ -1,12 +1,10 @@
- 
-import TaskCard from "../../components/TaskCard/TaskCard";
-import { TaskInfoCard } from "../../components/TaskCard/TaskCard";
 import { useQuery } from "@tanstack/react-query";
-import request from "../../utils/request";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
-import paths from "../../routes/path"; 
+import paths from "../../routes/path";
+import { handleFetchTasks } from "./homeAPI";
+import Tasks from "./Tasks";
 
 export interface TaskServer {
   TASK_ID: number;
@@ -16,35 +14,21 @@ export interface TaskServer {
   ISCOMPLETE: number;
 }
 
-export default function Home() {  
-  const handleFetchTasks = async () => {
-    const { data } = await request.get("/api/getTasks");
-    return data;
-  };
- 
+export default function Home() {
   const { data, error, isLoading } = useQuery({
     queryKey: ["getTasks"],
     queryFn: handleFetchTasks,
   });
 
-  const uncompleteTasks = data?.filter((item: TaskServer) => item.ISCOMPLETE === 0);
-  const completeTasks = data?.filter((item: TaskServer) => item.ISCOMPLETE === 1);
-   
-  const renderTasks =   ( taskList: TaskInfoCard[]) =>
-      taskList.map((item: any, index: number) => {
-        return <TaskCard
-          key={index}
-          task={{
-            taskID: item.TASK_ID,
-            taskName: item.NAME,
-            note: item.NOTE,
-            dueDate: item.DUEDATE,
-            isComplete: item.ISCOMPLETE === 0 ? false : true
-          }}
-          indexItem={index} 
-          tasks={taskList}
-        />;
-      });
+  const uncompleteTasks: TaskServer[] = data?.filter(
+    (item: TaskServer) => item.ISCOMPLETE === 0,
+  );
+  const completeTasks: TaskServer[] = data?.filter(
+    (item: TaskServer) => item.ISCOMPLETE === 1,
+  );
+
+  if (isLoading) return <p className="mt-5">Loading...</p>;
+  if (error) return <p className="mt-5">Error</p>;
 
   return (
     <div className=" overflow-y-auto rounded-lg">
@@ -57,36 +41,17 @@ export default function Home() {
           &nbsp;&nbsp; Add
         </Link>
       </div>
-
-      {isLoading ? (
-        <p className="mt-5">Loading...</p>
-      ) : error ? (
-        <p className="mt-5">Error</p>
-      ) : (
+      <div className="mt-5">
         <div className="mt-5">
-          <div className="mt-5">
-            <span className="badge bg-white">Uncomplete</span>
-
-            <div className="mt-3 px-6 py-3 bg-white rounded-lg">
-              { uncompleteTasks.length > 0 ? renderTasks(uncompleteTasks)
-               : (
-                <div className="text-start">No Task</div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <span className="badge bg-white">Complete</span>
-
-            <div className="mt-3 px-6 py-3 bg-white rounded-lg">
-              { completeTasks.length > 0 ? renderTasks(completeTasks)
-               : (
-                <div className="text-start">No Task</div>
-              )}
-            </div>
-          </div>
+          <span className="badge bg-white">Uncomplete</span>
+          <Tasks taskList={uncompleteTasks} />
         </div>
-      )}
+
+        <div className="mt-5">
+          <span className="badge bg-white">Complete</span>
+          <Tasks taskList={completeTasks} />
+        </div>
+      </div>
     </div>
   );
 }

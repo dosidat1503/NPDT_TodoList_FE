@@ -5,11 +5,13 @@ export interface Response {
   message: string;
 }
 
-export const saveTask = async (saveData: TaskInfoAddOrUpdate) => {
-  const response =
-    saveData.taskID === 0
-      ? await request.post<Response>("/api/addTask", saveData)
-      : await request.put<Response>("/api/updateTask", saveData);
+export const addTask = async (taskData: TaskInfoAddOrUpdate) => {
+  const response = await request.post<Response>("/api/addTask", taskData);
+  return response.data;
+}
+
+export const updateTask = async (updateData: TaskInfoAddOrUpdate) => {
+  const response = await request.put<Response>("/api/updateTask", updateData)
   return response.data;
 };
 
