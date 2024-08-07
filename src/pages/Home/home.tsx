@@ -44,8 +44,9 @@ export default function Home() {
 
   useEffect(() => {  
     let checkUpdate = false;
-    const tasksList = tasks.tasks;
-    if(data && tasksList.length > 0) {
+    const tasksList = tasks.tasks
+    console.log(tasksList)
+    if(data && tasksList.length > 0 && data.length === tasksList.length) {
       checkUpdate = data.some((item: TaskServer, index: number) =>  
         item.NAME !== tasksList[index].taskName 
         || item.NOTE !== tasksList[index].note 
@@ -64,10 +65,8 @@ export default function Home() {
         };
       });
 
-      dispatch(TasksSlice.actions.setTasks(tasksData));
-      console.log('ok')
-    } 
-    console.log('ok ngoài')
+      dispatch(TasksSlice.actions.setTasks(tasksData)); 
+    }  
   }, [data]);
 
   useEffect(() => {
@@ -94,7 +93,7 @@ export default function Home() {
   );
 
   return (
-    <div className="h-97 overflow-y-auto rounded-lg">
+    <div className=" overflow-y-auto rounded-lg">
       <div className="mt-5">
         <Link
           to={paths.add}

@@ -102,7 +102,7 @@ export default function AddOrUpdateTask() {
   };
 
   return (
-    <div className=" h-97">
+    <div >
       <p className="font-bold text-2xl text-start">
         {taskID ? "UPDATE TASK" : "ADD TASK"}
       </p>
