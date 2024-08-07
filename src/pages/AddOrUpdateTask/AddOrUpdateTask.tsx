@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parse } from "date-fns";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Riple } from "react-loading-indicators";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
@@ -22,6 +22,7 @@ export interface TaskInfoAddOrUpdate {
 
 export default function AddOrUpdateTask() { 
   const navigation = useNavigate(); 
+  const queryClient = useQueryClient();
   const { taskID } = useParams(); 
   const {
     register,
@@ -45,7 +46,7 @@ export default function AddOrUpdateTask() {
       setTimeout(() => {
         navigation("/");
       }, 1000);  
-      console.log(data) 
+      queryClient.invalidateQueries({ queryKey: ["getTasks"], exact: true });
     },
     onError: () => {
       setTimeout(() => {
@@ -66,25 +67,7 @@ export default function AddOrUpdateTask() {
   const handleTurnBack = () => {
     navigation("/");
   };
-
-  // useEffect(() => {
-  //     if(taskID) {
-  //         const taskUpdate = tasks.tasks.find((item: any) => item.taskID === Number(taskID))
-  //         if(taskUpdate) {
-  //             const parsedDate = taskUpdate.dueDate && parse(taskUpdate.dueDate, 'HH:mm dd/MM/yyyy', new Date());
-
-  //             const taskInfoAddOrUpdate = {
-  //                 taskID: taskUpdate.taskID,
-  //                 taskName: taskUpdate.taskName,
-  //                 note: taskUpdate.note || "",
-  //                 dueDate: parsedDate ? parsedDate : new Date(),
-  //                 isChangeDate: false,
-  //             }
-  //             setTaskInfoAddOrUpdate(taskInfoAddOrUpdate);
-  //         }
-  //     }
-  // }, [taskID]);
-
+ 
   useEffect(() => {
     if (data && data.TASK_ID) {
       const parsedDate =

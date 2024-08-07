@@ -2,68 +2,66 @@ import { faEdit, faEye } from "@fortawesome/free-solid-svg-icons";
 import { faTrashCan } from "@fortawesome/free-solid-svg-icons/faTrashCan";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate } from "react-router-dom";
-import { useMutation } from "@tanstack/react-query";
-import { useCallback } from "react";
-import { useDispatch, useSelector } from "react-redux"; 
-import TasksSlice from "../../pages/Home/TasksSlice";
-import { deleteTask, updateState } from "../TaskCard/taskCardAPI";
-import { RootState } from "../../redux/store";
+import { useMutation, useQueryClient } from "@tanstack/react-query"; 
+import { deleteTask, updateState } from "../TaskCard/taskCardAPI"; 
+import { useState } from "react";
 
 export interface TaskInfoCard {
   taskID: number;
   taskName: string;
   note?: string;
   dueDate?: string;
-  isComplete: boolean;
-  isWatching: boolean;
+  isComplete: boolean; 
 }
 
 interface TaskCardProps {
   task: TaskInfoCard;
+  tasks: TaskInfoCard[];
   indexItem: number;
 }
 
-export default function TaskCard({ task, indexItem }: TaskCardProps) {
-  const dispatch = useDispatch();
+export default function TaskCard({ task }: TaskCardProps) { 
   const navigation = useNavigate();
-  const tasks = useSelector((state: RootState) => state.tasks); 
+  const queryClient = useQueryClient();
+  const [isWatching, setIsWatching] = useState(false);
 
   const mutationUpdateStateTask = useMutation({
     mutationFn: updateState, 
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["getTasks"], exact: true });
+    }
   });
 
   const { mutate: mutateDelete, error: errorDelete } = useMutation({
-    mutationFn: deleteTask, 
+    mutationFn: deleteTask,
+    onSuccess: () => {
+      queryClient.invalidateQueries({queryKey: ["getTasks"], exact: true });
+    }
   });
 
-  const handleUpdateState = useCallback(() => {
-    const newTasks = [...tasks.tasks]; 
-    dispatch(TasksSlice.actions.updateState(task.taskID));
-
+  const handleUpdateState =  () => { 
     const updateStateData = {
       taskID: task.taskID,
-      isComplete: newTasks[indexItem].isComplete ? 0 : 1,
+      isComplete: task.isComplete ? 0 : 1,
     };
 
     mutationUpdateStateTask.mutate(updateStateData);
-  }, [tasks]);
+  };
 
-  const handleWatch = useCallback(() => {
-    dispatch(TasksSlice.actions.watch(task.taskID));
-  }, [tasks]);
+  const handleWatch =  () => {
+    setIsWatching(!isWatching);
+  };
 
-  const handleUpdate = useCallback(() => {
+  const handleUpdate = () => {
     navigation("/update/" + task.taskID);
-  }, [tasks]);
+  };
 
-  const handleDelete = useCallback(() => {
-    dispatch(TasksSlice.actions.delete(indexItem));
-
+  const handleDelete = () => {  
     const deleteData = {
       taskID: task.taskID,
     }; 
     mutateDelete(deleteData);
-  }, [tasks]);
+  };
 
   return errorDelete ? (
     <div>{errorDelete?.message}</div>
@@ -88,7 +86,7 @@ export default function TaskCard({ task, indexItem }: TaskCardProps) {
                 {task.taskName}
               </span>
             </div>
-            {task.isWatching ? (
+            {isWatching ? (
               task.note ? (
                 <div className="mt-2 px-2 py-1 bg-slate-300 rounded-lg w-20 md:w-80 text-blue-900">
                   <span className="block break-words ">
