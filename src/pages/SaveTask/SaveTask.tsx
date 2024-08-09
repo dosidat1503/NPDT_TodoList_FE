@@ -5,32 +5,30 @@ import { useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format, parse } from "date-fns";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Riple } from "react-loading-indicators";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
-import { addTask, updateTask, getTask } from "./addOrUpdateTaskAPI";
-import { useForm, Controller } from "react-hook-form";
+import { addTask, updateTask, getTask } from "./saveAPI";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { TaskInfoSaveSchema, TaskInfoSave } from "./saveType";
 
-export interface TaskInfoAddOrUpdate {
-  taskID: number;
-  taskName: string;
-  note: string;
-  dueDate: Date | string;
-  isChangeDate: boolean;
-}
 
-export default function AddOrUpdateTask() {
-  const navigation = useNavigate();
-  const queryClient = useQueryClient();
+export default function SaveTask() {
+  const navigation = useNavigate(); 
   const { taskID } = useParams();
+  const parsedTaskID = parseInt(taskID || "0");
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
     setValue,
-  } = useForm<TaskInfoAddOrUpdate>({
+    reset,
+    setFocus,
+  } = useForm<TaskInfoSave>({
+    resolver: zodResolver(TaskInfoSaveSchema),
     defaultValues: {
       taskID: 0,
       taskName: "",
@@ -41,10 +39,9 @@ export default function AddOrUpdateTask() {
   });
 
   const mutationSave = useMutation({
-    mutationFn: taskID ? updateTask : addTask,
+    mutationFn: parsedTaskID === 0 ? addTask : updateTask,
     onSuccess: (_) => {
-      navigation("/");
-      queryClient.invalidateQueries({ queryKey: ["getTasks"], exact: true });
+      navigation("/"); 
     },
     onError: () => {
       mutationSave.reset();
@@ -56,8 +53,8 @@ export default function AddOrUpdateTask() {
     error: erorDataUpdate,
     isLoading: isLoadingDataUpdate,
   } = useQuery({
-    queryKey: ["getTask", taskID],
-    queryFn: () => getTask(taskID || "0"),
+    queryKey: ["getTask", parsedTaskID],
+    queryFn: () => getTask(parsedTaskID),
   });
 
   const handleTurnBack = () => {
@@ -68,15 +65,22 @@ export default function AddOrUpdateTask() {
     if (data && data.TASK_ID) {
       const parsedDate =
         data.DUEDATE && parse(data.DUEDATE, "HH:mm dd/MM/yyyy", new Date());
-      setValue("taskID", data.TASK_ID);
-      setValue("taskName", data.NAME);
-      setValue("note", data.NOTE);
-      setValue("dueDate", parsedDate);
-      setValue("isChangeDate", false);
+
+      reset({
+        taskID: data.TASK_ID,
+        taskName: data.NAME,
+        note: data.NOTE,
+        isChangeDate: false,
+      });
+      parsedDate && setValue("dueDate", parsedDate);
     }
   }, [data]);
 
-  const onSubmit = (data: TaskInfoAddOrUpdate) => {
+  useEffect(() => {
+    setFocus("taskName");
+  }, [setFocus]);
+
+  const onSubmit: SubmitHandler<TaskInfoSave> = (data: TaskInfoSave) => {
     mutationSave.mutate(data);
   };
 
@@ -94,7 +98,7 @@ export default function AddOrUpdateTask() {
       </div>
     );
   }
-  if (isLoadingDataUpdate && taskID) {
+  if (isLoadingDataUpdate && parsedTaskID) {
     return (
       <div>
         <span>Loading...</span>
@@ -129,25 +133,9 @@ export default function AddOrUpdateTask() {
               <div>
                 <input
                   type="text"
-                  className="w-100% input"
+                  className="w-100% input "
                   placeholder={"Enter Task Name"}
-                  {...register("taskName", {
-                    required: "Task name is required",
-                    validate: (value) => {
-                      if (value.trim() === "") {
-                        return false;
-                      }
-                      return true;
-                    },
-                    minLength: {
-                      value: 5,
-                      message: "Task name must be at least 5 characters",
-                    },
-                    maxLength: {
-                      value: 200,
-                      message: "Task name must be at most 200 characters",
-                    },
-                  })}
+                  {...register("taskName")}
                 />
                 <p className="text-red-500 text-sm ml-2">
                   {errors.taskName ? errors.taskName.message : ""}
@@ -158,7 +146,7 @@ export default function AddOrUpdateTask() {
             <div className="flex flex-col mb-3">
               <label className="ml-2">Note</label>
               <textarea
-                className="w-100% h-32 input"
+                className="w-100% h-32 input "
                 placeholder="Enter Note"
                 {...register("note")}
               />
@@ -179,6 +167,7 @@ export default function AddOrUpdateTask() {
                     }
                     onChange={(date) => {
                       setValue("isChangeDate", true);
+
                       const parseDate =
                         date && format(date, "HH:mm dd/MM/yyyy");
                       onChange(parseDate);

@@ -1,5 +1,5 @@
 import request from "../../utils/request";
-import { Response } from "../../pages/AddOrUpdateTask/addOrUpdateTaskAPI";
+import { Response } from "../../pages/SaveTask/saveAPI";
 
 interface StateUpdateInfo {
   taskID: number;
@@ -8,7 +8,7 @@ interface StateUpdateInfo {
 
 interface DeleteData {
   taskID: number;
-} 
+}
 
 export const updateState = async (stateUpdateInfo: StateUpdateInfo) => {
   const response = await request.put<Response>(

@@ -4,7 +4,7 @@ import { faListCheck } from "@fortawesome/free-solid-svg-icons";
 
 export default function Sidebar() {
   return (
-    <div className="bg-blue-950   overflow-hidden   px-4 py-10">
+    <div className="bg-blue-950 px-4 py-10 ">
       {/* logo */}
       <div className="  bg-bgMain flex justify-center items-center rounded-lg">
         <img src={todoListLogo} className="h-16 w-16"></img>

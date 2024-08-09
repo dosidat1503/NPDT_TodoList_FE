@@ -5,66 +5,110 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteTask, updateState } from "../TaskCard/taskCardAPI";
 import { useState } from "react";
+import { TaskServer } from "../../pages/Home/homeType";
+import { TaskCardProps, Delete, UpdateState, Action } from "./taskCardType";
+import { getTask } from "../../pages/SaveTask/saveAPI";
 
-export interface TaskInfoCard {
-  taskID: number;
-  taskName: string;
-  note?: string;
-  dueDate?: Date | string;
-  isComplete: boolean;
-}
-
-interface TaskCardProps {
-  task: TaskInfoCard;
-  indexItem: number;
-}
-
-export default function TaskCard({ task }: TaskCardProps) {
+export default function TaskCard({
+  task, 
+  currentPage,
+}: TaskCardProps) {
   const navigation = useNavigate();
   const queryClient = useQueryClient();
   const [isWatching, setIsWatching] = useState(false);
+  const actionTypes = ["delete", "updateState"];
 
-  const mutationUpdateStateTask = useMutation({
-    mutationFn: updateState,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["getTasks"], exact: true });
+  const mutationFn = async (action: Action) => {
+    if (action.type === actionTypes[0]) {
+      const response = await deleteTask(action.data as Delete);
+      return response;
+    } else {
+      const response = await updateState(action.data as UpdateState);
+      return response;
+    }
+  };
+
+  const mutation = useMutation({
+    mutationFn: mutationFn,
+    onMutate: (action) => {
+      queryClient.cancelQueries({
+        queryKey: ["getTasks", currentPage],
+        exact: true,
+      });
+      const previousData = queryClient.getQueryData([
+        "getTasks",
+        currentPage, 
+      ]);
+
+      queryClient.setQueryData(
+        ["getTasks", currentPage,  ],
+        action.type === actionTypes[0]
+          ? (old: { data: TaskServer[] }) => {
+              const list = old.data.filter(
+                (item) => item.TASK_ID !== task.taskID,
+              );
+              return { ...old, data: list };
+            }
+          : (old: { data: TaskServer[] }) => {
+              const list = old.data.map((item) => {
+                if (item.TASK_ID === task.taskID)
+                  return { ...item, ISCOMPLETE: !item.ISCOMPLETE ? 1 : 0 };
+                return item;
+              });
+              return { ...old, data: list };
+            },
+      );
+
+      return { previousData };
     },
-  });
-
-  const { mutate: mutateDelete, error: errorDelete } = useMutation({
-    mutationFn: deleteTask,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["getTasks"], exact: true });
+    onError: (err, _, context) => {
+      console.log(err, _, context);
+      queryClient.setQueryData(
+        ["getTasks", currentPage],
+        context && context.previousData,
+      );
     },
   });
 
   const handleUpdateState = () => {
-    const updateStateData = {
-      taskID: task.taskID,
-      isComplete: task.isComplete ? 0 : 1,
+    const action = {
+      type: actionTypes[1],
+      data: {
+        taskID: task.taskID,
+        isComplete: task.isComplete ? 0 : 1,
+      },
     };
 
-    mutationUpdateStateTask.mutate(updateStateData);
+    mutation.mutate(action);
   };
 
   const handleWatch = () => {
     setIsWatching(!isWatching);
   };
 
-  const handleUpdate = () => {
+  const handleHoverUpdate = () => {
+    queryClient.prefetchQuery({
+      queryKey: ["getTask", task.taskID],
+      queryFn: () => getTask(task.taskID || 0),
+    }) 
+  }
+
+  const handleUpdate = () => { 
     navigation("/update/" + task.taskID);
   };
 
+
   const handleDelete = () => {
-    const deleteData = {
-      taskID: task.taskID,
+    const action = {
+      type: actionTypes[0],
+      data: {
+        taskID: task.taskID,
+      },
     };
-    mutateDelete(deleteData);
+    mutation.mutate(action);
   };
 
-  if (errorDelete) return <div>{errorDelete?.message}</div>;
-  if (mutationUpdateStateTask.error)
-    return <div>{mutationUpdateStateTask.error?.message}</div>;
+  if (mutation.isError) return <div>{mutation.error?.message}</div>;
 
   return (
     <div className="p-2 my-2 border-2 bg-gray-200 rounded-lg">
@@ -111,7 +155,7 @@ export default function TaskCard({ task }: TaskCardProps) {
             <FontAwesomeIcon icon={faEye} />
           </button>
           {task.isComplete ? null : (
-            <button className="mr-2" onClick={() => handleUpdate()}>
+            <button className="mr-2" onClick={() => handleUpdate()} onMouseEnter={() => handleHoverUpdate()}>
               <FontAwesomeIcon icon={faEdit} />
             </button>
           )}

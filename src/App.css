@@ -35,6 +35,6 @@
   }
 
   .input {
-    @apply border-2 rounded-lg px-3 py-1;
+    @apply rounded-lg px-3 py-1 outline-none;
   }
 }

@@ -1,17 +1,20 @@
-
-import TaskCard from "../../components/TaskCard/TaskCard";
-import { TaskServer } from "./home";
+import TaskCard from "../TaskCard/TaskCard";
+import { TaskServer } from "../../pages/Home/homeType";
 
 interface TasksProps {
-    taskList: TaskServer[];
+  taskList: TaskServer[]; 
+  currentPage: number;
 }
 
-export default function Tasks({taskList} : TasksProps) {
+export default function Tasks({
+  taskList, 
+  currentPage,
+}: TasksProps) {
   const renderTasks = (taskList: TaskServer[]) =>
     taskList.map((item: any, index: number) => {
       return (
         <TaskCard
-          key={index}
+          key={item.TASK_ID}
           task={{
             taskID: item.TASK_ID,
             taskName: item.NAME,
@@ -20,6 +23,7 @@ export default function Tasks({taskList} : TasksProps) {
             isComplete: item.ISCOMPLETE === 0 ? false : true,
           }}
           indexItem={index} 
+          currentPage={currentPage}
         />
       );
     });
