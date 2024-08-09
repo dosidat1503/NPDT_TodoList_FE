@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -18,6 +18,7 @@ export default function Home() {
   const { data, error, isLoading } = useQuery({
     queryKey: ["getTasks", currentPage],
     queryFn: () => handleFetchTasks(currentPage),   
+    placeholderData: keepPreviousData
   }); 
   const uncompleteTasks: TaskServer[] =
     data?.data.filter((item: TaskServer) => item.ISCOMPLETE === 0) ?? [];
@@ -27,7 +28,7 @@ export default function Home() {
   if (isLoading) return <p className="mt-5">Loading...</p>;
   if (error) return <p className="mt-5">Error</p>; 
 
-  const handleHoverPage = (page: number) => {
+  const handleHoverPage = (page: number) => { 
     queryClient.prefetchQuery({
       queryKey: ["getTasks", page],
       queryFn: () => handleFetchTasks(page),

@@ -4,15 +4,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteTask, updateState } from "../TaskCard/taskCardAPI";
-import { useState } from "react";
-import { TaskServer } from "../../pages/Home/homeType";
+import { useCallback, useState } from "react";
 import { TaskCardProps, Delete, UpdateState, Action } from "./taskCardType";
 import { getTask } from "../../pages/SaveTask/saveAPI";
+import { ReturnData } from "../../pages/Home/homeType";
 
-export default function TaskCard({
-  task, 
-  currentPage,
-}: TaskCardProps) {
+export default function TaskCard({ task, currentPage }: TaskCardProps) {
   const navigation = useNavigate();
   const queryClient = useQueryClient();
   const [isWatching, setIsWatching] = useState(false);
@@ -35,21 +32,18 @@ export default function TaskCard({
         queryKey: ["getTasks", currentPage],
         exact: true,
       });
-      const previousData = queryClient.getQueryData([
-        "getTasks",
-        currentPage, 
-      ]);
+      const previousData = queryClient.getQueryData(["getTasks", currentPage]);
 
       queryClient.setQueryData(
-        ["getTasks", currentPage,  ],
+        ["getTasks", currentPage],
         action.type === actionTypes[0]
-          ? (old: { data: TaskServer[] }) => {
+          ? (old: ReturnData) => {
               const list = old.data.filter(
                 (item) => item.TASK_ID !== task.taskID,
               );
               return { ...old, data: list };
             }
-          : (old: { data: TaskServer[] }) => {
+          : (old: ReturnData) => {
               const list = old.data.map((item) => {
                 if (item.TASK_ID === task.taskID)
                   return { ...item, ISCOMPLETE: !item.ISCOMPLETE ? 1 : 0 };
@@ -70,7 +64,7 @@ export default function TaskCard({
     },
   });
 
-  const handleUpdateState = () => {
+  const handleUpdateState = useCallback(() => {
     const action = {
       type: actionTypes[1],
       data: {
@@ -80,25 +74,24 @@ export default function TaskCard({
     };
 
     mutation.mutate(action);
-  };
+  }, [task, mutation]);
 
-  const handleWatch = () => {
+  const handleWatch = useCallback(() => {
     setIsWatching(!isWatching);
-  };
+  }, [isWatching]);
 
-  const handleHoverUpdate = () => {
+  const handleHoverUpdate = useCallback(() => {
     queryClient.prefetchQuery({
       queryKey: ["getTask", task.taskID],
       queryFn: () => getTask(task.taskID || 0),
-    }) 
-  }
+    });
+  }, [task.taskID, queryClient]);
 
-  const handleUpdate = () => { 
+  const handleUpdate = useCallback(() => {
     navigation("/update/" + task.taskID);
-  };
+  }, [navigation, task.taskID]);
 
-
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     const action = {
       type: actionTypes[0],
       data: {
@@ -106,7 +99,7 @@ export default function TaskCard({
       },
     };
     mutation.mutate(action);
-  };
+  }, [task.taskID, mutation]);
 
   if (mutation.isError) return <div>{mutation.error?.message}</div>;
 
@@ -155,7 +148,11 @@ export default function TaskCard({
             <FontAwesomeIcon icon={faEye} />
           </button>
           {task.isComplete ? null : (
-            <button className="mr-2" onClick={() => handleUpdate()} onMouseEnter={() => handleHoverUpdate()}>
+            <button
+              className="mr-2"
+              onClick={() => handleUpdate()}
+              onMouseEnter={() => handleHoverUpdate()}
+            >
               <FontAwesomeIcon icon={faEdit} />
             </button>
           )}

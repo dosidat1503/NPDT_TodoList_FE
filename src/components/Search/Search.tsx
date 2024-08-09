@@ -16,7 +16,7 @@ export default function Search({ scrollRef }: { scrollRef: RefObject<HTMLDivElem
 
   const debouncedSearch = useDebounce(search, 300);
 
-  const { data, error, isLoading } = useQuery({
+  const { data, error } = useQuery({
     queryKey: ["search", debouncedSearch],
     queryFn: () => searchTask(debouncedSearch),
     enabled: debouncedSearch !== "",
@@ -39,8 +39,7 @@ export default function Search({ scrollRef }: { scrollRef: RefObject<HTMLDivElem
     };
   }, [scrollRef]);
 
-  if (error) return <p>Error</p>;
-  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error</p>; 
 
   const renderResults = data?.map((task: TaskServer) => (
     <div
@@ -49,7 +48,7 @@ export default function Search({ scrollRef }: { scrollRef: RefObject<HTMLDivElem
       onMouseDown={() => {
         navigation(`/update/${task.TASK_ID}`);
       }}
-    >
+    > 
       <h3>{task.NAME}</h3>
     </div>
   ));
