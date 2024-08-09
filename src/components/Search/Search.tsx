@@ -1,15 +1,16 @@
-import { useEffect, useState } from "react";
+import { RefObject, useEffect, useState } from "react";
 import useDebounce from "./useDebounce";
 import { useQuery } from "@tanstack/react-query";
 import request from "../../utils/request";
 import { useNavigate } from "react-router-dom";
+import { TaskServer } from "../../pages/Home/homeType";
 
 const searchTask = async (search: string) => {
   const response = await request.get(`/api/searchTask?query=${search}`);
   return response.data;
 };
 
-export default function Search({ scrollRef }: { scrollRef: any }) {
+export default function Search({ scrollRef }: { scrollRef: RefObject<HTMLDivElement> }) {
   const [search, setSearch] = useState("");
   const navigation = useNavigate();
 
@@ -41,7 +42,7 @@ export default function Search({ scrollRef }: { scrollRef: any }) {
   if (error) return <p>Error</p>;
   if (isLoading) return <p>Loading...</p>;
 
-  const renderResults = data?.map((task: any) => (
+  const renderResults = data?.map((task: TaskServer) => (
     <div
       key={task.TASK_ID}
       className="border-b border-gray-300 p-2 hover:bg-gray-300 rounded-lg m-2"

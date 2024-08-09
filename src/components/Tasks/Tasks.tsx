@@ -11,7 +11,7 @@ export default function Tasks({
   currentPage,
 }: TasksProps) {
   const renderTasks = (taskList: TaskServer[]) =>
-    taskList.map((item: any, index: number) => {
+    taskList.map((item: TaskServer, index: number) => {
       return (
         <TaskCard
           key={item.TASK_ID}
