@@ -8,7 +8,7 @@ import Tasks from "../../components/Tasks/Tasks";
 import Search from "../../components/Search/Search";
 import { useRef, useState } from "react";
 import { Pagination } from "antd";
-import { TaskServer } from "./homeType";
+import { TaskServer } from "./homeType"; 
  
 export default function Home() {
   const scrollRef = useRef<HTMLDivElement>(null);
